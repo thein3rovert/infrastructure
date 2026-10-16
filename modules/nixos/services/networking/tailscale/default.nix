@@ -46,6 +46,7 @@
         enable = true;
         extraUpFlags = [
           "--ssh"
+          "--reset"
         ];
         openFirewall = true;
         useRoutingFeatures = "both";
