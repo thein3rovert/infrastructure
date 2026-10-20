@@ -134,18 +134,18 @@ in
     # VM Services
     # ============================================
     linkding = {
-      ip = hosts.k3s-server.tailscaleIp;
+      ip = hosts.octavia.tailscaleIp;
       port = networkMap.linkding.port;
       # url = "${config.homelab.ipRegistry.linkding.ip}:${toString config.homelab.ipRegistry.linkding.port}";
       url = "${config.homelab.ipRegistry.linkding.ip}:80";
     };
     longhorn = {
-      ip = hosts.k3s-server.tailscaleIp;
+      ip = hosts.octavia.tailscaleIp;
       port = networkMap.longhorn.port;
       url = "${config.homelab.ipRegistry.longhorn.ip}:${toString config.homelab.ipRegistry.longhorn.port}";
     };
     argocd = {
-      ip = hosts.k3s-server.tailscaleIp;
+      ip = hosts.octavia.tailscaleIp;
       port = networkMap.argocd.port;
       url = "${config.homelab.ipRegistry.argocd.ip}:${toString config.homelab.ipRegistry.argocd.port}";
     };
@@ -164,7 +164,8 @@ in
       url = "${config.homelab.ipRegistry.syncthing.ip}:${toString config.homelab.ipRegistry.syncthing.port}";
     };
     vault = {
-      ip = hosts.becca.tailscaleIp;
+      # Migrated from becca to srv-prod-01 (PLB-012); becca entry kept above for reference.
+      ip = hosts.srv-prod-01.tailscaleIp;
       port = networkMap.vault.port;
       url = "${config.homelab.ipRegistry.vault.ip}:${toString config.homelab.ipRegistry.vault.port}";
     };

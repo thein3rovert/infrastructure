@@ -101,6 +101,10 @@ in
         ip = "10.10.20.100";
         tailscaleIp = "100.85.190.19";
       };
+      octavia = {
+        ip = "192.168.0.113";
+        tailscaleIp = "100.106.96.97";
+      };
       becca = {
         ip = "${ip-base}.101";
         tailscaleIp = "100.123.31.22";
@@ -114,6 +118,9 @@ in
       };
       nixos-runner = {
         tailscaleIp = "100.111.90.52";
+      };
+      srv-prod-01 = {
+        tailscaleIp = "100.92.136.66";
       };
       node-0 = {
         tailscaleIp = "100.72.97.99";
