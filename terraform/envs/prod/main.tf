@@ -204,7 +204,7 @@ module "k3s_control_plane_02" {
 module "k3s_control_plane_03" {
   source = "../../modules/infra/providers/proxmox/vm"
 
-  target_node    = "mount-weather"
+  target_node    = var.target_node
   hostname       = "octavia"
   vmid           = 113
   clone_template = "ubuntu-22.04-cloud"
@@ -229,6 +229,33 @@ module "k3s_control_plane_03" {
     k3s Server Control Plane - replacement for marcus incus VM (HML-045)
     NOTE: ubuntu-22.04-cloud template must exist on mount-weather (currently only on thein3rovert) - copy before apply
   EOT
+}
+
+module "kestra_worker_01" {
+  source = "../../modules/infra/providers/proxmox/vm"
+
+  target_node    = var.target_node
+  hostname       = "indra"
+  vmid           = 114
+  clone_template = "ubuntu-22.04-cloud"
+
+  kvm_enabled   = true
+  agent_enabled = true
+  cores         = 2
+  memory        = 4096
+  disk_size     = "20G"
+  storage       = var.rootfs_storage
+
+  bridge      = var.bridge
+  ip_address  = "${var.ip_base}.114"
+  cidr_suffix = var.cidr_suffix
+  gateway     = var.gateway
+
+  password   = local.root_password
+  ssh_keys   = file(var.ssh_public_key_path)
+  extra_tags = ["kestra", "worker", "docker"]
+
+  description = "Kestra persistent worker with Docker for ephemeral CI jobs"
 }
 
 
