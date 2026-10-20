@@ -1,0 +1,63 @@
+id: tailscale-key-rotation
+namespace: ops
+
+description: Weekly Tailscale auth-key expiry check (dry-run by default)
+
+triggers:
+  - id: weekly-monday
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 6 * * 1"  # Monday 06:00 UTC
+    timezone: "Etc/UTC"
+
+variables:
+  tailnet: "thein3rovert.github"
+  gcp_project: "{{ kv('GCP_PROJECT_ID') }}"
+  secret_id: "tailscale-authkey"
+
+tasks:
+  - id: working_dir
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    tasks:
+      - id: clone_playbooks
+        type: io.kestra.plugin.git.Clone
+        url: https://github.com/thein3rovert/playbooks
+        branch: main
+        directory: "{{ workingDir }}/playbooks"
+
+      - id: clone_infra
+        type: io.kestra.plugin.git.Clone
+        url: https://github.com/thein3rovert/infrastructure
+        branch: main
+        directory: "{{ workingDir }}/infra"
+
+      - id: dry_run_check
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: willhallonline/ansible:latest
+        env:
+          ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
+          SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+          GOOGLE_APPLICATION_CREDENTIALS: "{{ workingDir }}/sa.json"
+          GCP_SA_JSON: "{{ kv('GCP_ROTATION_SA_KEY') }}"
+        beforeCommands:
+          - apk add --no-cache python3 py3-pip bash openssh-client
+          - pip install --quiet google-cloud-secret-manager
+          - echo "$GCP_SA_JSON" > {{workingDir}}/sa.json
+          - chmod 600 {{workingDir}}/sa.json
+          - mkdir -p ~/.ssh
+          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          - chmod 600 ~/.ssh/id_rsa
+          - echo "$ANSIBLE_VAULT_PASSWORD" > {{workingDir}}/playbooks/.vault_pass
+          - chmod 600 {{workingDir}}/playbooks/.vault_pass
+        commands:
+          - >-
+            cd {{workingDir}}/playbooks &&
+            ansible-playbook -i inventory/production.yml playbooks/key-rotation.yml
+            --tags key-rotation
+            -e rotation_script_path={{workingDir}}/infra/jobs/tailscale-key-rotation/src/rotate.py
+            -e rotation_gcp_project={{ vars.gcp_project }}
+            -e rotation_secret_id={{ vars.secret_id }}
+            -e rotation_tailnet={{ vars.tailnet }}
+        outputFiles:
+          - "*.log"
