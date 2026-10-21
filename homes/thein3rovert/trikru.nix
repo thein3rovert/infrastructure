@@ -32,6 +32,9 @@
     obsidian-headless
   ];
 
+  # Tools installed outside nix (e.g. Hermes agent harness in ~/.local/bin)
+  home.sessionPath = [ "$HOME/.local/bin" ];
+
   # Override base stateVersion (base = "25.11", this host = "25.05")
   home.stateVersion = lib.mkForce "25.05";
 
