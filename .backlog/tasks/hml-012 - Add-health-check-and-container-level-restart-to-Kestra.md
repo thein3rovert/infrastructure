@@ -3,9 +3,9 @@ id: HML-012
 title: Add health check and container-level restart to Kestra
 status: In Progress
 assignee:
-  - AI Assistant
+  - '@AI-Assistant'
 created_date: '2026-08-08 15:47'
-updated_date: '2026-08-08 18:14'
+updated_date: '2026-10-21 19:12'
 labels: []
 dependencies:
   - HML-009
@@ -72,6 +72,8 @@ Root cause: Systemd Restart=on-failure only works when the container process exi
 ### Dependencies
 - Requires `curl` inside Kestra container (should be present in base image)
 - Health endpoint must be accessible at `http://localhost:8081/health`
+
+2026-10-21 recovery: inspect the latest executor shutdown evidence, start the existing executor without upgrading images, correct restart/config dependencies for the currently deployed split service names if needed, and verify runtime health without interrupting Postgres.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -201,4 +203,8 @@ $ sudo podman inspect kestra --format '{{.Config.Healthcheck}}'
 ```
 
 Ready for acceptance criteria #4 and #5 testing.
+
+Current incident: podman-kestra-executor is inactive/dead with Result=success and Restart=on-failure. The Nix restart override still targets the retired podman-kestra unit, not the split executor/controller/scheduler/webserver units. Marcus currently runs Kestra 2.0.7; Indra runs 2.0.6. KV lookup failures are separately confirmed to come from worker-local storage, not missing namespace inheritance.
+
+2026-10-21 verified recovery: executor was started successfully and reports Kestra 2.0.7 / Executor started. Read-only shutdown investigation found PostgreSQL connection timeouts followed by executor-delay-exception-watcher termination, TERMINATED_GRACEFULLY, and status 0 at 02:33:09 BST; systemd deactivated it at 02:33:10 BST. Tailscale connection timeouts to PostgreSQL corroborate a reachability problem, but database-host outage versus network-path failure is not distinguished. The unrelated 00:17 webserver OOM was not an executor OOM. Corrected Nix setup dependencies and Restart=always for all four actual split unit names, with 30-second delay and 5 starts/300 seconds; explicit runtime drop-ins under /run/systemd/system make those restart policies active now without a host rebuild. nix eval confirms executor Restart=always. Runtime drop-ins are temporary; the Nix source correction becomes reboot-persistent after the next Marcus rebuild. No disruptive Postgres outage/recovery test was performed, so existing outstanding acceptance criteria remain open. Healthcheck unhealthy state alone is not a restart action.
 <!-- SECTION:NOTES:END -->
