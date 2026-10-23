@@ -34,9 +34,16 @@ variable "schedule_cron" {
   default     = "0 6 * * 1" # weekly Monday 06:00
 }
 
+variable "enable_run_job" {
+  type        = bool
+  description = "Create the Cloud Run job (Kestra path leaves this false)"
+  default     = false
+}
+
 variable "job_image" {
   type        = string
   description = "Container image for the rotation job"
+  default     = ""
 }
 
 variable "tailnet" {
@@ -90,6 +97,7 @@ resource "google_secret_manager_secret_iam_member" "version_manager" {
 }
 
 resource "google_cloud_run_v2_job" "rotation" {
+  count    = var.enable_run_job ? 1 : 0
   project  = var.project_id
   location = var.region
   name     = "tailscale-key-rotation"
@@ -134,7 +142,7 @@ resource "google_cloud_run_v2_job" "rotation" {
 }
 
 resource "google_cloud_scheduler_job" "rotation" {
-  count       = var.enable_schedule ? 1 : 0
+  count       = var.enable_schedule && var.enable_run_job ? 1 : 0
   project     = var.project_id
   region      = var.region
   name        = "tailscale-key-rotation"
@@ -145,7 +153,7 @@ resource "google_cloud_scheduler_job" "rotation" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/${google_cloud_run_v2_job.rotation.id}:run"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/${google_cloud_run_v2_job.rotation[0].id}:run"
     oauth_token {
       service_account_email = google_service_account.rotation.email
     }
@@ -158,6 +166,6 @@ output "service_account_email" {
 }
 
 output "job_name" {
-  value       = google_cloud_run_v2_job.rotation.name
-  description = "Cloud Run job name"
+  value       = var.enable_run_job ? google_cloud_run_v2_job.rotation[0].name : null
+  description = "Cloud Run job name (null unless enable_run_job)"
 }

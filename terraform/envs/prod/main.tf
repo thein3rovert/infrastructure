@@ -537,6 +537,30 @@ module "tailscale_secret" {
   }
 }
 
+# Tailscale key rotation identity (PLB-013/HML-046). Creates ONLY the
+# least-privilege service account + IAM on the existing secret.
+# Cloud Run job and schedule stay off (Kestra path); key material is
+# minted in the Tailscale console, never in Terraform.
+module "tailscale_rotation_identity" {
+  source = "../../modules/infra/providers/gcp/tailscale-rotation"
+
+  project_id              = var.gcp_project_id
+  region                  = var.gcp_region
+  secret_id               = "tailscale-authkey"
+  tailnet                 = "thein3rovert.github"
+  enable_run_job          = false
+  enable_schedule         = false
+  dry_run                 = true
+  rotation_threshold_days = 14
+  key_ttl_seconds         = 7776000
+
+  labels = {
+    environment = "production"
+    managed_by  = "terraform"
+    service     = "tailscale-rotation"
+  }
+}
+
 # ====================================
 #       GCP | STORAGE BUCKET (Infrastructure)
 # ====================================
