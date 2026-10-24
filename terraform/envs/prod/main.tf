@@ -537,28 +537,28 @@ module "tailscale_secret" {
   }
 }
 
-# Tailscale key rotation identity (PLB-013/HML-046). Creates ONLY the
-# least-privilege service account + IAM on the existing secret.
-# Cloud Run job and schedule stay off (Kestra path); key material is
-# minted in the Tailscale console, never in Terraform.
-module "tailscale_rotation_identity" {
-  source = "../../modules/infra/providers/gcp/tailscale-rotation"
+# Tailscale key rotation identity: generic service account plus the two
+# Secret Manager grants it needs on tailscale-authkey and nothing else.
+module "tailscale_rotation_sa" {
+  source = "../../modules/infra/providers/gcp/service-account"
 
-  project_id              = var.gcp_project_id
-  region                  = var.gcp_region
-  secret_id               = "tailscale-authkey"
-  tailnet                 = "thein3rovert.github"
-  enable_run_job          = false
-  enable_schedule         = false
-  dry_run                 = true
-  rotation_threshold_days = 14
-  key_ttl_seconds         = 7776000
+  project_id   = var.gcp_project_id
+  account_id   = "tailscale-key-rotation"
+  display_name = "Tailscale key rotation (least privilege)"
+}
 
-  labels = {
-    environment = "production"
-    managed_by  = "terraform"
-    service     = "tailscale-rotation"
-  }
+resource "google_secret_manager_secret_iam_member" "tailscale_rotation_viewer" {
+  project   = var.gcp_project_id
+  secret_id = "tailscale-authkey"
+  role      = "roles/secretmanager.viewer"
+  member    = "serviceAccount:${module.tailscale_rotation_sa.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "tailscale_rotation_version_manager" {
+  project   = var.gcp_project_id
+  secret_id = "tailscale-authkey"
+  role      = "roles/secretmanager.secretVersionManager"
+  member    = "serviceAccount:${module.tailscale_rotation_sa.email}"
 }
 
 # ====================================

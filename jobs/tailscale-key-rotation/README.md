@@ -8,9 +8,9 @@ Scheduled monitoring + rotation of the shared reusable Tailscale auth key
 Kestra flow `ops.tailscale-key-rotation` (weekly) → Ansible ops playbook
 `playbooks/key-rotation.yml` (dry-run default) → `src/rotate.py`.
 
-Cloud Run + Scheduler Terraform lives in
-`terraform/modules/infra/providers/gcp/tailscale-rotation/` for later;
-it is **not wired or applied** (needs explicit approval).
+Identity lives in `terraform/modules/infra/providers/gcp/service-account/`,
+used from `terraform/envs/prod/main.tf`. Cloud Run + Scheduler were dropped
+in favour of the Kestra path.
 
 ## Local use
 
