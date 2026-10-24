@@ -20,6 +20,10 @@ tasks:
     tasks:
       - id: clone_repos
         type: io.kestra.plugin.scripts.shell.Commands
+        retry:
+          type: constant
+          maxAttempt: 3
+          interval: PT30S
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
@@ -32,6 +36,10 @@ tasks:
 
       - id: dry_run_check
         type: io.kestra.plugin.scripts.shell.Commands
+        retry:
+          type: constant
+          maxAttempt: 3
+          interval: PT30S
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
