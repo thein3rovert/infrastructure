@@ -106,18 +106,23 @@ kestra-restart:
 
 [group('terraform')]
 init env:
+  #!/usr/bin/env bash
+  source ~/.proxmox_api_secrets
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/terraform-key.json"
   cd ./terraform/envs/{{ env }} && terraform init
 
 [group('terraform')]
 plan env:
   #!/usr/bin/env bash
   source ~/.proxmox_api_secrets
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/terraform-key.json"
   cd ./terraform/envs/{{ env }} && terraform plan
 
 [group('terraform')]
 apply env:
   #!/usr/bin/env bash
   source ~/.proxmox_api_secrets
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/terraform-key.json"
   cd ./terraform/envs/{{ env }} && terraform apply
 
 
@@ -125,12 +130,14 @@ apply env:
 validate env:
   #!/usr/bin/env bash
   source ~/.proxmox_api_secrets
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/terraform-key.json"
   cd ./terraform/envs/{{ env }} && terraform validate
 
 [group('terraform')]
 destroy env:
   #!/usr/bin/env bash
   source ~/.proxmox_api_secrets
+  export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/terraform-key.json"
   cd ./terraform/envs/{{ env }} && terraform destroy
 
 # [group('ansible')]
