@@ -30,6 +30,12 @@ gcp_project_id = "your-gcp-project-id"
 # Optional: SSH keys (format: username:ssh-rsa AAAAB3...)
 # gcp_ssh_keys = "username:ssh-rsa AAAAB3NzaC1yc2EAAAA..."
 
+# Optional: extra raw "user:key" lines appended to instance SSH metadata
+# (use for keys added via console so plans stay clean)
+# gcp_ssh_extra_keys = [
+#   "danielolaibi:ssh-rsa AAAAB3...",
+# ]
+
 #========= GCP Secrets =================
 # Required: Tailscale authentication key for VPN access
 tailscale_authkey = "tskey-auth-xxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx"

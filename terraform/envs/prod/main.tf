@@ -32,10 +32,13 @@ locals {
   root_password = data.vault_kv_secret_v2.proxmox.data["root_password"]
 
   # Format SSH keys for GCP (username:key-content for each user)
-  gcp_ssh_keys = join("\n", [
-    for user in var.gcp_ssh_key_users :
-    "${user}:${file(var.ssh_public_key_path)}"
-  ])
+  gcp_ssh_keys = join("\n", concat(
+    [
+      for user in var.gcp_ssh_key_users :
+      "${user}:${file(var.ssh_public_key_path)}"
+    ],
+    var.gcp_ssh_extra_keys,
+  ))
 }
 
 # Proxmox provider using Vault secrets

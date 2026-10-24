@@ -203,6 +203,12 @@ variable "gcp_ssh_key_users" {
   default     = ["ubuntu", "thein3rovert"]
 }
 
+variable "gcp_ssh_extra_keys" {
+  type        = list(string)
+  description = "Extra raw SSH key lines (user:key) appended as-is, e.g. keys added via console"
+  default     = []
+}
+
 variable "gcp_tags" {
   type        = list(string)
   description = "Network tags"
