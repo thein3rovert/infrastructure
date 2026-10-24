@@ -18,17 +18,14 @@ tasks:
   - id: working_dir
     type: io.kestra.plugin.core.flow.WorkingDirectory
     tasks:
-      - id: clone_playbooks
-        type: io.kestra.plugin.git.Clone
-        url: https://github.com/thein3rovert/playbooks
-        branch: main
-        directory: "{{ workingDir }}/playbooks"
-
-      - id: clone_infra
-        type: io.kestra.plugin.git.Clone
-        url: https://github.com/thein3rovert/infrastructure
-        branch: main
-        directory: "{{ workingDir }}/infra"
+      - id: clone_repos
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: willhallonline/ansible:latest
+        commands:
+          - git clone --depth 1 --branch main https://github.com/thein3rovert/playbooks "{{ workingDir }}/playbooks"
+          - git clone --depth 1 --branch main https://github.com/thein3rovert/infrastructure "{{ workingDir }}/infra"
 
       - id: dry_run_check
         type: io.kestra.plugin.scripts.shell.Commands
