@@ -23,6 +23,8 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
         commands:
           - git clone --depth 1 --branch main https://github.com/thein3rovert/playbooks "{{ workingDir }}/playbooks"
           - git clone --depth 1 --branch main https://github.com/thein3rovert/infrastructure "{{ workingDir }}/infra"
@@ -32,6 +34,8 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
         env:
           ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
           SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
