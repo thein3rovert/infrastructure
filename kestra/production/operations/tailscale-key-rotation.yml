@@ -39,11 +39,13 @@ tasks:
           ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
           SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
           GOOGLE_APPLICATION_CREDENTIALS: "{{ workingDir }}/sa.json"
-          GCP_SA_JSON: "{{ kv('GCP_ROTATION_SA_KEY') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
         beforeCommands:
-          - apk add --no-cache python3 py3-pip bash openssh-client
+          - apk add --no-cache python3 py3-pip bash openssh-client curl jq
           - pip install --quiet google-cloud-secret-manager
-          - echo "$GCP_SA_JSON" > {{workingDir}}/sa.json
+          # Service-account key comes from HashiCorp Vault, never Kestra KV
+          - curl -s -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/secret/data/gcp/tailscale-rotation" | jq -r .data.data.key > {{workingDir}}/sa.json
           - chmod 600 {{workingDir}}/sa.json
           - mkdir -p ~/.ssh
           - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
