@@ -44,8 +44,9 @@ tasks:
         beforeCommands:
           - apk add --no-cache python3 py3-pip bash openssh-client curl jq
           - pip install --quiet google-cloud-secret-manager
-          # Service-account key comes from HashiCorp Vault, never Kestra KV
-          - curl -s -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/secret/data/gpc/tailscale-sa" | jq -r .data.data.key > {{workingDir}}/sa.json
+          # Service-account key comes from HashiCorp Vault, never Kestra KV.
+          # Stored as split JSON fields; reassemble into the key file.
+          - curl -s -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/secret/data/gpc/tailscale-sa" | jq '.data.data | {type, project_id, private_key_id, private_key, client_email, client_id, auth_uri, token_uri, auth_provider_x509_cert_url, client_x509_cert_url, universe_domain}' > {{workingDir}}/sa.json
           - chmod 600 {{workingDir}}/sa.json
           - mkdir -p ~/.ssh
           - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
