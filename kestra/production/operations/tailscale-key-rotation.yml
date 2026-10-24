@@ -22,7 +22,7 @@ tasks:
         type: io.kestra.plugin.scripts.shell.Commands
         retry:
           type: constant
-          maxAttempt: 3
+          maxAttempts: 3
           interval: PT30S
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
@@ -38,7 +38,7 @@ tasks:
         type: io.kestra.plugin.scripts.shell.Commands
         retry:
           type: constant
-          maxAttempt: 3
+          maxAttempts: 3
           interval: PT30S
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
