@@ -12,6 +12,10 @@
         file = "${self.inputs.secrets}/godaddy/godaddy.age";
         path = "/home/thein3rovert/.secrets/.traefik-godaddy";
       };
+      cloudflare = {
+        file = "${self.inputs.secrets}/cloudflare/cloudflare.age";
+        path = "/home/thein3rovert/.secrets/.traefik-cloudflare";
+      };
       freshrss = {
         file = "${self.inputs.secrets}/freshrss/freshrss.age";
         path = "/home/thein3rovert/.secrets/.freshrss";

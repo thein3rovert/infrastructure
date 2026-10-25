@@ -43,18 +43,18 @@
 
         # Certificate Resolver Option
         certificatesResolvers = {
-          godaddy = {
+          cloudflare = {
             acme = {
               email = "danielolaibi@gmail.com";
               storage = "/var/lib/traefik/acme.json";
               caserver = "https://acme-v02.api.letsencrypt.org/directory";
               dnsChallenge = {
-                provider = "godaddy";
+                provider = "cloudflare";
                 resolvers = [
                   "1.1.1.1:53"
                   "8.8.8.8:53"
                 ];
-                propagation.delayBeforeChecks = 90; # TODO: Change to 90 or 180
+                propagation.delayBeforeChecks = 30;
                 # propagation = {
                 #   delaybefore = 90; # Increase from 60 to 90 seconds
                 #   timeout = 180; # Add a timeout of 180 seconds
@@ -113,7 +113,7 @@
               middlewares = [ "auth" ]; # Activate auth for domain access
               # Configure TLS
               tls = {
-                certResolver = "godaddy";
+                certResolver = "cloudflare";
                 domains = [
                   {
                     main = "thein3rovert.dev";
@@ -127,7 +127,7 @@
               service = "memos";
               entryPoints = [ "websecure" ];
               tls = {
-                certResolver = "godaddy";
+                certResolver = "cloudflare";
               };
             };
             blog = {
@@ -135,7 +135,7 @@
               service = "blog";
               entryPoints = [ "websecure" ];
               tls = {
-                certResolver = "godaddy";
+                certResolver = "cloudflare";
               };
             };
             say-cheese = {
@@ -143,7 +143,7 @@
               service = "say-cheese";
               entryPoints = [ "websecure" ];
               tls = {
-                certResolver = "godaddy";
+                certResolver = "cloudflare";
               };
             };
           };
@@ -152,7 +152,7 @@
             service = "garage";
             entryPoints = [ "websecure" ];
             tls = {
-              certResolver = "godaddy";
+              certResolver = "cloudflare";
             };
           };
           routers.forgejo = {
@@ -160,7 +160,7 @@
             service = "forgejo";
             entryPoints = [ "websecure" ];
             tls = {
-              certResolver = "godaddy";
+              certResolver = "cloudflare";
             };
           };
           routers.ssh = {
@@ -168,7 +168,7 @@
             service = "ssh";
             entryPoints = [ "websecure" ];
             tls = {
-              certResolver = "godaddy";
+              certResolver = "cloudflare";
             };
           };
         };
@@ -189,7 +189,7 @@
     # Service configuration
     systemd.services.traefik = {
       serviceConfig = {
-        EnvironmentFile = [ "${config.age.secrets.godaddy.path}" ];
+        EnvironmentFile = [ "${config.age.secrets.cloudflare.path}" ];
         User = "traefik";
         Group = "traefik";
       };

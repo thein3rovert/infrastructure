@@ -32,7 +32,7 @@ in
     myContainers.traefik = {
       enable = true;
       defaultEntryPoints = [ "websecure" ];
-      defaultCertResolver = "godaddy";
+      defaultCertResolver = "cloudflare";
     };
 
     myContainers = {

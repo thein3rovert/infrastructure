@@ -39,7 +39,7 @@
         service = "minio-console";
         entryPoints = [ "websecure" ];
         tls = {
-          certResolver = "godaddy";
+          certResolver = "cloudflare";
         };
       };
       # === Routes ===
@@ -48,7 +48,7 @@
         service = "minio";
         entryPoints = [ "websecure" ];
         tls = {
-          certResolver = "godaddy";
+          certResolver = "cloudflare";
         };
       };
 

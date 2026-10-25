@@ -900,11 +900,11 @@
     "secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1789557752,
-        "narHash": "sha256-dpHc3Tp2I/U6z/MTqxBwwwtsa1IQFaTfUObvG87cvew=",
+        "lastModified": 1792946134,
+        "narHash": "sha256-yTHB8J3TeYasG8pehT/rIwHwMCNAcKELKELP+HVidb8=",
         "owner": "thein3rovert",
         "repo": "secret-vault",
-        "rev": "9f2767335fd9489c00f6247ec30a165b6ab7660b",
+        "rev": "111822e8f832b43a95c560f006c701d2bcbf8f86",
         "type": "github"
       },
       "original": {

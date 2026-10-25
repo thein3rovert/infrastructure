@@ -22,7 +22,7 @@ in
     myContainers.traefik = {
       enable = true;
       defaultEntryPoints = [ "websecure" ];
-      defaultCertResolver = "godaddy";
+      defaultCertResolver = "cloudflare";
     };
     myContainers = {
       enable = true;
@@ -69,7 +69,7 @@ in
     #     service = "freshrss";
     #     entryPoints = [ "websecure" ];
     #     tls = {
-    #       certResolver = "godaddy";
+    #       certResolver = "cloudflare";
     #     };
     #   };
     # };

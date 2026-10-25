@@ -51,7 +51,7 @@
         service = "minio";
         entryPoints = [ "websecure" ];
         tls = {
-          certResolver = "godaddy";
+          certResolver = "cloudflare";
         };
       };
     };

@@ -39,7 +39,7 @@ in
 
       defaultCertResolver = createOption {
         type = string;
-        default = "godaddy";
+        default = "cloudflare";
         description = "Default certificate resolver";
       };
     };
