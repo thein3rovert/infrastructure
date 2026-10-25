@@ -75,6 +75,7 @@ tasks:
             ansible-playbook -i inventory/production.yml playbooks/key-rotation.yml
             --tags key-rotation
             -e rotation_dry_run=false
+            -e rotation_reauth_enabled=true
             -e rotation_script_path={{workingDir}}/infra/jobs/tailscale-key-rotation/src/rotate.py
             -e rotation_gcp_project={{ kv('GCP_PROJECT_ID') }}
             -e rotation_secret_id={{ vars.secret_id }}
