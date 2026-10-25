@@ -66,6 +66,9 @@ tasks:
           - chmod 600 ~/.ssh/id_rsa
           - echo "$ANSIBLE_VAULT_PASSWORD" > {{workingDir}}/playbooks/.vault_pass
           - chmod 600 {{workingDir}}/playbooks/.vault_pass
+          - mkdir -p /root/.config/ansible
+          - echo "$ANSIBLE_VAULT_PASSWORD" > /root/.config/ansible/vault-password
+          - chmod 600 /root/.config/ansible/vault-password
           - >-
             cd {{workingDir}}/playbooks &&
             ansible-playbook -i inventory/production.yml playbooks/key-rotation.yml
