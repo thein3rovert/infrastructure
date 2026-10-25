@@ -53,7 +53,7 @@ tasks:
           VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
         beforeCommands:
           - apk add --no-cache python3 py3-pip bash openssh-client curl jq
-          - pip install --quiet google-cloud-secret-manager
+          - pip install --quiet --break-system-packages google-cloud-secret-manager
         commands:
           - export GOOGLE_APPLICATION_CREDENTIALS="{{workingDir}}/sa.json"
           - >-
