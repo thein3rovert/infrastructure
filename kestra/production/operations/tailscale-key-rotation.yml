@@ -1,12 +1,12 @@
 id: tailscale-key-rotation
 namespace: ops
 
-description: Weekly Tailscale auth-key rotation (live)
+description: Daily Tailscale auth-key rotation + Ubuntu node re-auth (live)
 
 triggers:
   - id: weekly-monday
     type: io.kestra.plugin.core.trigger.Schedule
-    cron: "0 6 * * 1"  # Monday 06:00 UTC
+    cron: "0 6 * * *"  # Daily 06:00 UTC
     timezone: "Etc/UTC"
 
 variables:
@@ -76,6 +76,8 @@ tasks:
             --tags key-rotation
             -e rotation_dry_run=false
             -e rotation_reauth_enabled=true
+            -e rotation_reauth_targets=srv-prod-01,indra,lincoln,raven,octavia
+            -e rotation_discord_webhook="{{ kv('DISCORD_WEBHOOK') }}"
             -e rotation_script_path={{workingDir}}/infra/jobs/tailscale-key-rotation/src/rotate.py
             -e rotation_gcp_project={{ kv('GCP_PROJECT_ID') }}
             -e rotation_secret_id={{ vars.secret_id }}
