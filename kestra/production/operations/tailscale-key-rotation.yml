@@ -77,7 +77,7 @@ tasks:
             -e rotation_dry_run=false
             -e rotation_reauth_enabled=true
             -e rotation_reauth_targets=srv-prod-01,indra,lincoln,raven,octavia
-            -e rotation_discord_webhook="{{ kv('DISCORD_WEBHOOK') }}"
+            -e rotation_discord_webhook="{{ kv('DISCORD_WEBHOOK', 'ops.monitoring') }}"
             -e rotation_script_path={{workingDir}}/infra/jobs/tailscale-key-rotation/src/rotate.py
             -e rotation_gcp_project={{ kv('GCP_PROJECT_ID') }}
             -e rotation_secret_id={{ vars.secret_id }}
