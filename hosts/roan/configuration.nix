@@ -69,16 +69,9 @@
       termix.enable = true;
       kaneo.enable = true;
       dbpro-studio.enable = true;
-      zerobyte = {
-        enable = true;
-        extraVolumes = [
-          # NOTE: /mnt/nightblood is mounted on the Proxmox host and passed
-          # through to this unprivileged LXC; roan is not an NFS client.
-          "/mnt/nightblood/sources/nixos-config:/nixos-config:ro"
-          "/mnt/nightblood/sources/thein3rovert_vault:/thein3rovert_vault:ro"
-          "/mnt/nightblood/sources/garage:/garage:ro"
-        ];
-      };
+      # Nightblood NFS is retired. Keep backup data, but do not run jobs
+      # against missing sources or block Roan startup on that share.
+      zerobyte.enable = false;
     };
   };
 
