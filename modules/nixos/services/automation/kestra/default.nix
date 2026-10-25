@@ -67,8 +67,8 @@ in
         user = "root";
         cmd = [ "server" "webserver" "--config" "/app/config.yaml" ];
         extraOptions = [
-          "--memory=1024m"
-          "--memory-swap=1024m"
+          "--memory=2048m"
+          "--memory-swap=2048m"
           "--health-cmd=curl -f http://localhost:8081/health || exit 1"
           "--health-interval=30s"
           "--health-retries=3"
