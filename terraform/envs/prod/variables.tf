@@ -230,6 +230,20 @@ variable "gcp_startup_script" {
   default     = null
 }
 
+#========= Cloudflare DNS =================
+
+variable "cloudflare_zone_id" {
+  type        = string
+  description = "Cloudflare zone ID for thein3rovert.dev."
+  default     = "f1dafae189acc6d796c0603bcedcbc00"
+}
+
+variable "origin_ip" {
+  type        = string
+  description = "Origin A record content (bellamy)."
+  default     = "95.216.216.22"
+}
+
 #========= GCP Secrets =================
 
 variable "tailscale_authkey" {
