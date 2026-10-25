@@ -1,0 +1,339 @@
+id: k3s-cluster-inventory
+namespace: ops.operations
+
+description: Daily K3S cluster inventory report using Ansible
+
+# Uncomment to enable scheduled execution
+# triggers:
+#   - id: daily-morning
+#     type: io.kestra.plugin.core.trigger.Schedule
+#     cron: "0 8 * * *"  # 8am daily
+#     timezone: "Europe/London"
+
+variables:
+  k3s_server_host: "{{ kv('K3S_SERVER_HOST') }}"
+  k3s_server_user: "{{ kv('K3S_SERVER_USER') }}"
+  vault_address: "{{ kv('VAULT_ADDR') }}"
+  vault_token: "{{ kv('VAULT_TOKEN') }}"
+  s3_bucket: "thein3rovert-bucket"
+  s3_endpoint: "{{ kv('S3_ENDPOINT_URL') }}"
+  aws_region: "garage"
+
+tasks:
+  - id: working_dir
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    tasks:
+      - id: clone_repo
+        type: io.kestra.plugin.git.Clone
+        url: https://github.com/thein3rovert/playbooks
+        branch: main
+
+      - id: run_inventory
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: willhallonline/ansible:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
+        env:
+          ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
+        beforeCommands:
+          - apk add --no-cache curl bash openssh-client jq
+          - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+          - mkdir -p ~/.ssh
+          - >-
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+          - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
+          - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
+          - echo "$ANSIBLE_VAULT_PASSWORD" > {{workingDir}}/.vault_pass
+          - chmod 600 {{workingDir}}/.vault_pass
+          - ansible-galaxy collection install kubernetes.core
+        commands:
+          - cd {{workingDir}} && ansible-playbook -i inventory/production.yml playbooks/site.yml --tags k3s-inventory --limit k3s_nodes
+        outputFiles:
+          - "*.json"
+
+      - id: fetch_report
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: willhallonline/ansible:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
+        env:
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
+          K3S_HOST: "{{ kv('K3S_SERVER_HOST') }}"
+          K3S_USER: "{{ kv('K3S_SERVER_USER') }}"
+        beforeCommands:
+          - apk add --no-cache openssh-client jq curl
+          - mkdir -p ~/.ssh
+          - >-
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+          - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
+          - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
+        commands:
+          - |
+            ssh-keyscan -H $K3S_HOST >> ~/.ssh/known_hosts
+            LATEST_REPORT=$(ssh -i ~/.ssh/id_ed25519 $K3S_USER@$K3S_HOST \
+              "ls -t /tmp/k3s-reports/k3s-report-*.json | head -1")
+            scp -i ~/.ssh/id_ed25519 \
+              $K3S_USER@$K3S_HOST:$LATEST_REPORT \
+              {{workingDir}}/k3s-report.json
+
+      - id: parse_report
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: alpine:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
+        beforeCommands:
+          - apk add --no-cache jq
+        commands:
+          - |
+            cd {{workingDir}}
+            echo "=== K3S Cluster Inventory Report ==="
+            echo ""
+            echo "📊 Cluster Summary:"
+            jq -r '.cluster_info | "  Total Nodes: \(.total_nodes)\n  Total Pods: \(.total_pods)\n  Total PVCs: \(.total_pvcs)\n  Total Services: \(.total_services)"' k3s-report.json
+            echo "  Problem Pods: $(jq '.problem_pods | length' k3s-report.json)"
+            echo "  Total Log Size: $(jq -r '.summary.total_log_size_mb' k3s-report.json)MB"
+            
+            echo ""
+            echo "💻 Node Metrics:"
+            jq -r '.nodes | to_entries[] | "  \(.value.hostname): CPU \(.value.metrics.cpu_percent) | Memory \(.value.metrics.memory_percent)"' k3s-report.json
+            
+            echo ""
+            echo "📦 Problem Pods:"
+            if jq -e '.problem_pods | length > 0' k3s-report.json > /dev/null; then
+              jq -r '.problem_pods[] | "  ❌ \(.namespace)/\(.name): \(.status)"' k3s-report.json
+            else
+              echo "  ✅ No problem pods"
+            fi
+            
+            echo ""
+            echo "🔄 ArgoCD Applications:"
+            jq -r '.argocd_apps[] | "  \(.name): \(.sync_status) | \(.health_status)"' k3s-report.json 2>/dev/null || echo "  ArgoCD not configured"
+            
+            echo ""
+            echo "📝 Full report available in Outputs tab"
+            echo ""
+            echo "Report timestamp: $(jq -r '.timestamp' k3s-report.json)"
+            echo "Report location on k3s-server: /tmp/k3s-reports/"
+
+      - id: check_alerts
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: alpine:latest
+          volumes:
+            - "{{workingDir}}:{{workingDir}}"
+        beforeCommands:
+          - apk add --no-cache jq
+        commands:
+          - |
+            cd {{workingDir}}
+            CRITICAL_ALERTS=$(jq -r '.alerts[] | select(.severity=="critical")' k3s-report.json 2>/dev/null | jq -s 'length')
+            
+            if [ "$CRITICAL_ALERTS" -gt 0 ]; then
+              echo "⚠️  CRITICAL: Found $CRITICAL_ALERTS critical alert(s)!"
+              jq -r '.alerts[] | select(.severity=="critical") | "  🚨 \(.message)"' k3s-report.json
+              exit 1
+            else
+              echo "✅ No critical alerts"
+            fi
+
+      - id: generate_html_report
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-alpine
+        beforeCommands:
+          - apk add --no-cache bash
+        commands:
+          - |
+            echo "Current directory: $(pwd)"
+            echo "Files in working directory:"
+            ls -lh
+            
+            if [ ! -f "k3s-report.json" ]; then
+              echo "❌ k3s-report.json not found!"
+              exit 1
+            fi
+            
+            python3 << 'PYTHON_SCRIPT'
+            import json
+            
+            with open('k3s-report.json', 'r') as f:
+                data = json.load(f)
+            
+            # Build HTML with proper escaping
+            html = """<!DOCTYPE html>
+            <html><head><meta charset="UTF-8"><title>K3S Report</title>
+            <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: #333; }
+            .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+            h1 { color: #667eea; margin-bottom: 10px; font-size: 2.5em; }
+            .timestamp { color: #666; font-size: 0.9em; margin-bottom: 30px; }
+            .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+            .summary-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .summary-card h3 { font-size: 0.9em; opacity: 0.9; margin-bottom: 10px; }
+            .summary-card .value { font-size: 2.5em; font-weight: bold; }
+            .section { margin-bottom: 40px; }
+            .section h2 { color: #667eea; margin-bottom: 20px; font-size: 1.8em; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+            .node-card { background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 15px; border-radius: 8px; }
+            .node-card h3 { color: #667eea; margin-bottom: 15px; }
+            .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+            .metric { background: white; padding: 15px; border-radius: 8px; }
+            .metric-label { font-size: 0.85em; color: #666; margin-bottom: 5px; }
+            .metric-value { font-size: 1.5em; font-weight: bold; }
+            .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+            .progress-fill { height: 100%; border-radius: 4px; }
+            .progress-ok { background: #4caf50; }
+            .progress-warning { background: #ff9800; }
+            .progress-critical { background: #f44336; }
+            .pod-item { background: white; padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #f44336; }
+            .app-item { background: white; padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
+            .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+            .badge-synced { background: #4caf50; color: white; }
+            .badge-healthy { background: #4caf50; color: white; }
+            .badge-outofsync { background: #ff9800; color: white; }
+            .no-items { text-align: center; padding: 30px; color: #999; }
+            </style></head><body><div class="container">
+            <h1>🚀 K3S Cluster Report</h1>
+            <div class="timestamp">Generated: """ + data.get('timestamp', 'N/A') + """</div>
+            <div class="summary-grid">
+            <div class="summary-card"><h3>Total Nodes</h3><div class="value">""" + str(data.get('cluster_info', {}).get('total_nodes', 0)) + """</div></div>
+            <div class="summary-card"><h3>Total Pods</h3><div class="value">""" + str(data.get('cluster_info', {}).get('total_pods', 0)) + """</div></div>
+            <div class="summary-card"><h3>Problem Pods</h3><div class="value">""" + str(len(data.get('problem_pods', []))) + """</div></div>
+            <div class="summary-card"><h3>Total PVCs</h3><div class="value">""" + str(data.get('cluster_info', {}).get('total_pvcs', 0)) + """</div></div>
+            <div class="summary-card"><h3>Log Size</h3><div class="value">""" + str(data.get('summary', {}).get('total_log_size_mb', 0)) + """ MB</div></div>
+            </div><div class="section"><h2>💻 Node Metrics</h2>"""
+            
+            # nodes is a dict, not a list
+            for node_name, node_data in data.get('nodes', {}).items():
+                if not isinstance(node_data, dict):
+                    continue
+                metrics = node_data.get('metrics', {})
+                if not isinstance(metrics, dict):
+                    metrics = {}
+                cpu = str(metrics.get('cpu_percent', '0')).replace('%', '')
+                mem = str(metrics.get('memory_percent', '0')).replace('%', '')
+                # Calculate disk usage from df output
+                disk_usage = node_data.get('disk_usage', [])
+                disk = '0'
+                if disk_usage and len(disk_usage) > 0:
+                    # Parse: "/dev/sda2        27G  5.9G   22G  22% /"
+                    parts = disk_usage[0].split()
+                    if len(parts) >= 5:
+                        disk = parts[4].replace('%', '')
+                
+                hostname = str(node_data.get("hostname", node_name))
+                html += '<div class="node-card"><h3>🖥️ ' + hostname + '</h3><div class="metrics">'
+                html += '<div class="metric"><div class="metric-label">CPU</div><div class="metric-value">' + cpu + '%</div><div class="progress-bar"><div class="progress-fill progress-ok" style="width:' + cpu + '%"></div></div></div>'
+                html += '<div class="metric"><div class="metric-label">Memory</div><div class="metric-value">' + mem + '%</div><div class="progress-bar"><div class="progress-fill progress-ok" style="width:' + mem + '%"></div></div></div>'
+                html += '<div class="metric"><div class="metric-label">Disk</div><div class="metric-value">' + disk + '%</div><div class="progress-bar"><div class="progress-fill progress-ok" style="width:' + disk + '%"></div></div></div>'
+                html += '</div></div>'
+            
+            html += '</div><div class="section"><h2>⚠️ Problem Pods</h2>'
+            problem_pods = data.get('problem_pods', [])
+            if problem_pods and len(problem_pods) > 0:
+                for pod in problem_pods:
+                    if not isinstance(pod, dict):
+                        continue
+                    namespace = str(pod.get("namespace", ""))
+                    name = str(pod.get("name", ""))
+                    status = str(pod.get("status", ""))
+                    html += '<div class="pod-item"><strong>' + namespace + '/' + name + '</strong><br>Status: ' + status + '</div>'
+            else:
+                html += '<div class="no-items">✅ No problem pods</div>'
+            
+            html += '</div><div class="section"><h2>🔄 ArgoCD Applications</h2>'
+            argocd_apps = data.get('argocd_apps', [])
+            if argocd_apps and len(argocd_apps) > 0:
+                for app in argocd_apps:
+                    if not isinstance(app, dict):
+                        continue
+                    app_name = str(app.get("name", ""))
+                    sync_status = str(app.get("sync_status", "")).lower().replace(" ", "")
+                    health_status = str(app.get("health_status", "")).lower()
+                    sync_display = str(app.get("sync_status", ""))
+                    health_display = str(app.get("health_status", ""))
+                    html += '<div class="app-item"><strong>' + app_name + '</strong><div><span class="badge badge-' + sync_status + '">' + sync_display + '</span> <span class="badge badge-' + health_status + '">' + health_display + '</span></div></div>'
+            else:
+                html += '<div class="no-items">ArgoCD not configured</div>'
+            
+            html += '</div></div></body></html>'
+            
+            with open('k3s-report.html', 'w') as f:
+                f.write(html)
+            print("✅ HTML report generated!")
+            PYTHON_SCRIPT
+            
+            ls -lh k3s-report.html
+
+      - id: upload_to_s3
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: amazon/aws-cli:latest
+        env:
+          VAULT_ADDR: "{{ vars.vault_address }}"
+          VAULT_TOKEN: "{{ vars.vault_token }}"
+          S3_ENDPOINT: "{{ vars.s3_endpoint }}"
+          S3_BUCKET: "{{ vars.s3_bucket }}"
+          AWS_REGION: "{{ vars.aws_region }}"
+        beforeCommands:
+          - yum install -y jq
+        commands:
+          - |
+            # Fetch AWS credentials from Vault
+            export AWS_ACCESS_KEY_ID=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+              "$VAULT_ADDR/v1/secret/data/s3" | \
+              jq -r '.data.data.access_key_id')
+            
+            export AWS_SECRET_ACCESS_KEY=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+              "$VAULT_ADDR/v1/secret/data/s3" | \
+              jq -r '.data.data.secret_access_key')
+            
+            # Use environment variables
+            export AWS_DEFAULT_REGION="$AWS_REGION"
+            
+            TIMESTAMP="{{ execution.startDate | date('yyyy-MM-dd-HHmmss') }}"
+            DATE_PATH="{{ execution.startDate | date('yyyy/MM/dd') }}"
+            
+            echo "📤 Uploading JSON report to S3..."
+            aws s3 cp k3s-report.json \
+              s3://$S3_BUCKET/k3s-reports/$DATE_PATH/k3s-report-$TIMESTAMP.json \
+              --endpoint-url $S3_ENDPOINT \
+              --content-type "application/json"
+            
+            echo "📤 Uploading HTML report to S3..."
+            aws s3 cp k3s-report.html \
+              s3://$S3_BUCKET/k3s-reports/$DATE_PATH/k3s-report-$TIMESTAMP.html \
+              --endpoint-url $S3_ENDPOINT \
+              --content-type "text/html"
+            
+            echo "📤 Uploading latest HTML (for direct access)..."
+            aws s3 cp k3s-report.html \
+              s3://$S3_BUCKET/k3s-reports/latest.html \
+              --endpoint-url $S3_ENDPOINT \
+              --content-type "text/html"
+            
+            echo ""
+            echo "✅ Reports uploaded successfully!"
+            echo ""
+            echo "📍 JSON: s3://$S3_BUCKET/k3s-reports/$DATE_PATH/k3s-report-$TIMESTAMP.json"
+            echo "📍 HTML: s3://$S3_BUCKET/k3s-reports/$DATE_PATH/k3s-report-$TIMESTAMP.html"
+            echo "📍 Latest: s3://$S3_BUCKET/k3s-reports/latest.html"
+            echo ""
+            echo "🌐 View latest report: https://s3.thein3rovert.dev/$S3_BUCKET/k3s-reports/latest.html"
+        outputFiles:
+          - "k3s-report.json"
+          - "k3s-report.html"

@@ -44,8 +44,8 @@ tasks:
           - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
           - mkdir -p ~/.ssh
           - >-
-          curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
-          | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
           - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - echo "$ANSIBLE_VAULT_PASSWORD" > {{workingDir}}/.vault_pass
@@ -72,8 +72,8 @@ tasks:
           - apk add --no-cache openssh-client jq curl
           - mkdir -p ~/.ssh
           - >-
-          curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
-          | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
           - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
         commands:
