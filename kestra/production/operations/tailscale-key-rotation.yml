@@ -57,9 +57,10 @@ tasks:
         commands:
           - export GOOGLE_APPLICATION_CREDENTIALS="{{workingDir}}/sa.json"
           - >-
-            curl -s -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/secret/data/gpc/tailscale-sa"
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/gpc/tailscale-sa"
             | jq '.data.data | {type, project_id, private_key_id, private_key, client_email, client_id, auth_uri, token_uri, auth_provider_x509_cert_url, client_x509_cert_url, universe_domain}'
             > {{workingDir}}/sa.json
+          - test -s {{workingDir}}/sa.json && echo "SA key fetched" 
           - chmod 600 {{workingDir}}/sa.json
           - mkdir -p ~/.ssh
           - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
