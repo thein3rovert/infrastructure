@@ -50,7 +50,7 @@ tasks:
         commands:
           - echo "===> Writing SSH key to workingDir"
           - mkdir -p {{workingDir}}/.ssh
-- >-
+          - >-
             curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
             | jq -r '.data.data."infra-private-key-main"' > {{workingDir}}/.ssh/id_rsa
           - chmod 600 {{workingDir}}/.ssh/id_rsa
