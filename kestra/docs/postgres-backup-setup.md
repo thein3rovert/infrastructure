@@ -17,7 +17,7 @@ Add these keys to Kestra KV store (Settings → KV Store):
 
 ```bash
 # SSH access
-SSH_PRIVATE_KEY           # Your SSH private key (same one used for other playbooks)
+SSH_PRIVATE_KEY           # Deprecated: SSH key now comes from Vault secret/ssh at runtime
 ANSIBLE_VAULT_PASSWORD    # Your Ansible vault password
 
 # Host configuration

@@ -1,5 +1,5 @@
 id: homelab-services-backup
-namespace: ops
+namespace: ops.backup
 
 description: >-
   Backup specific homelab services to my homelab s3 bucket, this workflow
@@ -28,22 +28,26 @@ tasks:
 
       - id: run-backup
         type: io.kestra.plugin.scripts.shell.Commands
+        timeout: PT1H
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
-          image: willhallonline/ansible:latest
+          image: google/cloud-sdk:alpine
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
           ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
-          SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
           ANSIBLE_VAULT_PASSWORD_FILE: /root/.config/ansible/vault-password
           BACKUP_HOST: "{{ vars.backup_host }}"
           EXPECTED_HOST_FINGERPRINT: "{{ vars.expected_ed25519_fingerprint }}"
         beforeCommands:
-          - apk add --no-cache curl bash openssh-client
-          - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+          - apk add --no-cache bash openssh-client python3 py3-pip curl jq
+          - pip install --no-cache-dir --break-system-packages ansible-core
           - mkdir -p ~/.ssh /root/.config/ansible
-          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+- >-
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
           - chmod 600 ~/.ssh/id_rsa
           - echo "$ANSIBLE_VAULT_PASSWORD" > /root/.config/ansible/vault-password
           - chmod 600 /root/.config/ansible/vault-password
@@ -62,4 +66,4 @@ tasks:
             printf '%s\n' "$SCANNED_KEY" >> ~/.ssh/known_hosts
             chmod 600 ~/.ssh/known_hosts
         commands:
-          - cd {{workingDir}} && just run-host backup bellamy
+          - cd {{workingDir}} && ansible-playbook -i inventory/production.yml playbooks/site.yml --tags backup --limit bellamy

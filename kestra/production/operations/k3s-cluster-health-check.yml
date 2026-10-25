@@ -37,13 +37,16 @@ tasks:
             - "{{workingDir}}:{{workingDir}}"
         env:
           ANSIBLE_VAULT_PASSWORD: "{{ kv('ANSIBLE_VAULT_PASSWORD') }}"
-          SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
         beforeCommands:
-          - apk add --no-cache curl bash openssh-client
+          - apk add --no-cache curl bash openssh-client jq
           - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
           - mkdir -p ~/.ssh
-          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+- >-
+          curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+          | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+          - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - echo "$ANSIBLE_VAULT_PASSWORD" > {{workingDir}}/.vault_pass
           - chmod 600 {{workingDir}}/.vault_pass
@@ -61,14 +64,17 @@ tasks:
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
-          SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
           K3S_HOST: "{{ kv('K3S_SERVER_HOST') }}"
           K3S_USER: "{{ kv('K3S_SERVER_USER') }}"
         beforeCommands:
-          - apk add --no-cache openssh-client jq
+          - apk add --no-cache openssh-client jq curl
           - mkdir -p ~/.ssh
-          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+- >-
+          curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+          | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+          - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
           - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
         commands:
           - |

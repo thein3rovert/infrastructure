@@ -1,5 +1,5 @@
 id: postgres-backup
-namespace: ops
+namespace: ops.backup
 
 description: Sync Postgres backups to Google Cloud Storage using Ansible
 
@@ -43,11 +43,16 @@ tasks:
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
-          SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+          VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+          VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
+        beforeCommands:
+          - apk add --no-cache curl jq
         commands:
           - echo "===> Writing SSH key to workingDir"
           - mkdir -p {{workingDir}}/.ssh
-          - echo "$SSH_PRIVATE_KEY" > {{workingDir}}/.ssh/id_rsa
+- >-
+            curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+            | jq -r '.data.data."infra-private-key-main"' > {{workingDir}}/.ssh/id_rsa
           - chmod 600 {{workingDir}}/.ssh/id_rsa
           - echo "===> SSH key written"
           - ls -la {{workingDir}}/.ssh/
@@ -86,9 +91,10 @@ tasks:
 
       - id: run_ansible
         type: io.kestra.plugin.scripts.shell.Commands
+        timeout: PT1H
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
-          image: willhallonline/ansible:latest
+          image: google/cloud-sdk:alpine
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
@@ -100,16 +106,11 @@ tasks:
           - mkdir -p /root/.config/ansible
           - echo "$ANSIBLE_VAULT_PASSWORD" > /root/.config/ansible/vault-password
           - chmod 600 /root/.config/ansible/vault-password
+          - apk add --no-cache bash openssh-client python3 py3-pip
+          - pip install --no-cache-dir --break-system-packages ansible-core
         commands:
-          - echo "===> A install base packages"
-          - apk add --no-cache curl bash openssh-client python3 py3-crcmod libc6-compat coreutils
-          - echo "===> B install gcloud SDK"
-          - curl -sSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz -o /tmp/gcloud.tar.gz
-          - tar -xzf /tmp/gcloud.tar.gz -C /usr/local/
-          - /usr/local/google-cloud-sdk/install.sh --quiet --path-update=false
-          - export PATH=$PATH:/usr/local/google-cloud-sdk/bin
-          - echo "===> C auth service account"
-          - /usr/local/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file={{workingDir}}/.gcp/service-account.json
+          - echo "===> A auth service account"
+          - gcloud auth activate-service-account --key-file={{workingDir}}/.gcp/service-account.json
           - echo "===> D mkdir ssh dir"
           - mkdir -p ~/.ssh
           - echo "===> E copy ssh key"
@@ -119,7 +120,6 @@ tasks:
           - ssh-keyscan -H 100.105.217.77 >> ~/.ssh/known_hosts
           - echo "===> G run ansible-playbook"
           - |
-            export PATH=$PATH:/usr/local/google-cloud-sdk/bin
             cd {{workingDir}}
             ansible-playbook -i inventory/localhost.yml \
               playbooks/site.yml \

@@ -21,14 +21,17 @@ tasks:
       type: io.kestra.plugin.scripts.runner.docker.Docker
       image: willhallonline/ansible:latest
     env:
-      SSH_PRIVATE_KEY: "{{ kv('SSH_PRIVATE_KEY') }}"
+      VAULT_ADDR: "{{ kv('VAULT_ADDR') }}"
+      VAULT_TOKEN: "{{ kv('VAULT_TOKEN') }}"
       K3S_HOST: "{{ kv('K3S_SERVER_HOST') }}"
       K3S_USER: "{{ kv('K3S_SERVER_USER') }}"
     beforeCommands:
-      - apk add --no-cache openssh-client
+      - apk add --no-cache openssh-client curl jq
       - mkdir -p ~/.ssh
-      - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-      - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+- >-
+      curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ssh"
+      | jq -r '.data.data."infra-private-key-main"' > ~/.ssh/id_rsa
+      - cp ~/.ssh/id_rsa ~/.ssh/id_ed25519
       - chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519
     commands:
       - |
