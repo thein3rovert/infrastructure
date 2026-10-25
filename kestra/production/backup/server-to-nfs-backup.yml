@@ -1,10 +1,12 @@
 id: backup-to-nfs
-namespace: ops
+namespace: ops.backup
 
 description: >-
   Sync backup sources from the nixos host to Nightblood NFS staging using the
   Ansible sync-sources operations playbook. Runs before Zerobyte's midnight
   backup schedules.
+
+disabled: true
 
 concurrency:
   limit: 1
