@@ -28,6 +28,7 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          user: "0:0"
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         commands:
@@ -40,6 +41,7 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          user: "0:0"
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
@@ -62,6 +64,7 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          user: "0:0"
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
@@ -81,6 +84,7 @@ tasks:
         taskRunner:
           type: io.kestra.plugin.scripts.runner.docker.Docker
           image: willhallonline/ansible:latest
+          user: "0:0"
           volumes:
             - "{{workingDir}}:{{workingDir}}"
         env:
