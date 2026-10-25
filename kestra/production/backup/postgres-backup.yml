@@ -117,6 +117,7 @@ tasks:
         beforeCommands:
           - apk add --no-cache bash openssh-client python3 py3-pip curl jq
           - pip install --no-cache-dir --break-system-packages ansible-core
+          - ansible-galaxy collection install community.general kubernetes.core
           - mkdir -p /root/.config/ansible
           - >-
             curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "http://100.92.136.66:8200/v1/secret/data/ansible"
