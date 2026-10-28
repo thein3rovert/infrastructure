@@ -130,9 +130,9 @@ module "dns" {
       name    = "uptime-kuma.thein3rovert.dev"
       type    = "A"
       content = var.origin_ip
-      proxied = true
+      proxied = false
       ttl     = 1
-      comment = "uptime-kuma"
+      comment = "uptime-kuma - DNS only (Cloudflare proxy breaks Kuma sockets)"
     }
     www = {
       name    = "www.thein3rovert.dev"

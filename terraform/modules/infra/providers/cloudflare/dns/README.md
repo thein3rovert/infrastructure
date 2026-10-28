@@ -40,14 +40,16 @@ terraform apply -target=module.dns
 
 ## Rules
 
-| Case | `proxied` | `ttl` |
-| ---- | --------- | ----- |
-| Normal web app | `true` | `1` (Auto) |
-| S3 / MinIO / Forgejo (`code`), large uploads | `false` | `1` |
-| `ssh` (proxy breaks SSH) | `false` | `1` |
-| Custom TTL, e.g. 10 min | `false` | `600` |
+| Case                                         | `proxied` | `ttl`      |
+| -------------------------------------------- | --------- | ---------- |
+| Normal web app                               | `true`    | `1` (Auto) |
+| S3 / MinIO / Forgejo (`code`), large uploads | `false`   | `1`        |
+| `ssh` (proxy breaks SSH)                     | `false`   | `1`        |
+| Infra UIs (`uptime-kuma`) — proxy breaks sockets | `false`   | `1`        |
+| Custom TTL, e.g. 10 min                      | `false`   | `600`      |
 
 `ttl = 1` means Auto in Cloudflare. `proxied = true` requires `ttl = 1`.
+Dashboard and code must agree — flip the dashboard toggle AND this file together, or the next `plan` reverts it.
 
 ## Delete a record
 
