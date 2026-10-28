@@ -34,7 +34,7 @@ tasks:
           - git clone --depth 1 --branch main https://github.com/thein3rovert/playbooks "{{ workingDir }}/playbooks"
           - git clone --depth 1 --branch main https://github.com/thein3rovert/infrastructure "{{ workingDir }}/infra"
 
-      - id: dry_run_check
+      - id: run_rotation
         type: io.kestra.plugin.scripts.shell.Commands
         retry:
           type: constant
