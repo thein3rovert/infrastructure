@@ -9,10 +9,12 @@ variable "http_monitors" {
     accepted_status_codes      = optional(list(string), ["200-299"])
     expiry_notification        = optional(bool, false)
     domain_expiry_notification = optional(bool, false)
+    ignore_tls                 = optional(bool, false)
+    oauth_auth_method          = optional(string, "client_secret_basic")
     max_retries                = optional(number, 0)
     retry_interval             = optional(number, 60)
-    notification_ids           = optional(list(number), [])
-    tags                       = optional(list(object({ tag_id = number, value = optional(string, "") })), [])
+    notification_ids           = optional(list(number))
+    tags                       = optional(list(object({ tag_id = number, value = optional(string) })), [])
   }))
   default     = {}
   description = "HTTP(S) monitors keyed by Terraform key (e.g. blog)."
@@ -27,8 +29,8 @@ variable "ping_monitors" {
     description      = optional(string)
     max_retries      = optional(number, 0)
     retry_interval   = optional(number, 60)
-    notification_ids = optional(list(number), [])
-    tags             = optional(list(object({ tag_id = number, value = optional(string, "") })), [])
+    notification_ids = optional(list(number))
+    tags             = optional(list(object({ tag_id = number, value = optional(string) })), [])
   }))
   default     = {}
   description = "ICMP ping monitors keyed by Terraform key."
@@ -46,8 +48,8 @@ variable "dns_monitors" {
     domain_expiry_notification = optional(bool, false)
     max_retries                = optional(number, 0)
     retry_interval             = optional(number, 60)
-    notification_ids           = optional(list(number), [])
-    tags                       = optional(list(object({ tag_id = number, value = optional(string, "") })), [])
+    notification_ids           = optional(list(number))
+    tags                       = optional(list(object({ tag_id = number, value = optional(string) })), [])
   }))
   default     = {}
   description = "DNS resolution monitors keyed by Terraform key."
@@ -62,8 +64,8 @@ variable "tcp_monitors" {
     description      = optional(string)
     max_retries      = optional(number, 0)
     retry_interval   = optional(number, 60)
-    notification_ids = optional(list(number), [])
-    tags             = optional(list(object({ tag_id = number, value = optional(string, "") })), [])
+    notification_ids = optional(list(number))
+    tags             = optional(list(object({ tag_id = number, value = optional(string) })), [])
   }))
   default     = {}
   description = "TCP port monitors keyed by Terraform key."
@@ -78,8 +80,8 @@ variable "postgres_monitors" {
     description       = optional(string)
     max_retries       = optional(number, 3)
     retry_interval    = optional(number, 60)
-    notification_ids  = optional(list(number), [])
-    tags              = optional(list(object({ tag_id = number, value = optional(string, "") })), [])
+    notification_ids  = optional(list(number))
+    tags              = optional(list(object({ tag_id = number, value = optional(string) })), [])
   }))
   default     = {}
   description = "PostgreSQL monitors keyed by Terraform key. Connection string is sensitive — pass from Vault, never inline."

@@ -11,6 +11,8 @@ resource "uptimekuma_monitor_http" "this" {
   accepted_status_codes      = each.value.accepted_status_codes
   expiry_notification        = each.value.expiry_notification
   domain_expiry_notification = each.value.domain_expiry_notification
+  ignore_tls                 = each.value.ignore_tls
+  oauth_auth_method          = each.value.oauth_auth_method
   max_retries                = each.value.max_retries
   retry_interval             = each.value.retry_interval
   notification_ids           = each.value.notification_ids

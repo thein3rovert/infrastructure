@@ -52,6 +52,7 @@ module "uptimekuma" {
       accepted_status_codes      = ["400-499"]
       expiry_notification        = true
       domain_expiry_notification = true
+      ignore_tls                 = true
       max_retries                = 0
       retry_interval             = 60
       notification_ids           = [1]
@@ -67,7 +68,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 30
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "management" }, { tag_id = 9, value = "" }]
+      tags             = [{ tag_id = 4, value = "management" }, { tag_id = 9 }]
     }
     finn = {
       hostname         = "100.91.36.84"
@@ -76,7 +77,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 8, value = "proxmox" }]
+      tags             = [{ tag_id = 4 }, { tag_id = 8, value = "proxmox" }]
     }
     marcus = {
       hostname         = "100.94.20.21"
@@ -86,7 +87,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 9, value = "" }]
+      tags             = [{ tag_id = 4 }, { tag_id = 9 }]
     }
     lincoln = {
       hostname         = "100.87.231.18"
@@ -95,7 +96,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 7, value = "" }, { tag_id = 11, value = "" }]
+      tags             = [{ tag_id = 4 }, { tag_id = 7 }, { tag_id = 11 }]
     }
     octavia = {
       hostname         = "100.106.96.97"
@@ -104,16 +105,15 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 7, value = "incus" }, { tag_id = 4, value = "" }, { tag_id = 11, value = "" }]
+      tags             = [{ tag_id = 7, value = "incus" }, { tag_id = 4 }, { tag_id = 11 }]
     }
     github-runner = {
-      hostname         = "100.87.59.51"
-      interval         = 60
-      timeout          = 48
-      max_retries      = 0
-      retry_interval   = 60
-      notification_ids = []
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 6, value = "" }, { tag_id = 8, value = "proxmox" }]
+      hostname       = "100.87.59.51"
+      interval       = 60
+      timeout        = 48
+      max_retries    = 0
+      retry_interval = 60
+      tags           = [{ tag_id = 4 }, { tag_id = 6 }, { tag_id = 8, value = "proxmox" }]
     }
     raven = {
       hostname         = "100.123.5.107"
@@ -123,7 +123,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 7, value = "" }, { tag_id = 11, value = "" }]
+      tags             = [{ tag_id = 4 }, { tag_id = 7 }, { tag_id = 11 }]
     }
   }
 
@@ -139,7 +139,7 @@ module "uptimekuma" {
       max_retries                = 0
       retry_interval             = 60
       notification_ids           = [2]
-      tags                       = [{ tag_id = 1, value = "" }]
+      tags                       = [{ tag_id = 1 }]
     }
   }
 
