@@ -4,6 +4,14 @@ Provider: `breml/uptimekuma` (~> 0.4). No official provider exists; this is
 the most complete community one. Auth is admin username + password (Kuma has
 no scoped tokens), so credentials live in Vault, never in git.
 
+> **Known limitation (provider 0.4.0):** connect hard-requires the server's
+> `maintenanceList` event, but Kuma's send runs in `Promise.allSettled` — a
+> single maintenance row that fails to serialize kills the emit silently and
+> EVERY terraform run times out with `(missing events: maintenanceList)`.
+> Keep maintenances at zero, or only rows created by the provider itself
+> (v2-native format). If plans suddenly start timing out on connect, check
+> Kuma → Maintenance for a broken row before anything else.
+
 ## Add a monitor
 
 Add an entry to the matching map in the env call (e.g.
