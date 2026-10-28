@@ -1,7 +1,7 @@
 # ====================================
 #       UPTIME KUMA | monitors as code
 # ====================================
-# Credentials come from Vault secret/uptime-kuma (username + password).
+# Credentials: secret/uptime-kuma (username/password) plus secret/database key postgres_uptime-sa (full conn string).
 # Postgres connection string: secret/uptime-kuma key "postgres_connection_string".
 # Admin login — no scoped tokens exist, so keep it in Vault, never in git.
 
@@ -10,10 +10,15 @@ data "vault_kv_secret_v2" "uptime_kuma" {
   name  = "uptime-kuma"
 }
 
+data "vault_kv_secret_v2" "database" {
+  mount = "secret"
+  name  = "database"
+}
+
 locals {
-  kuma_username   = data.vault_kv_secret_v2.uptime_kuma.data["username"]
-  kuma_password   = data.vault_kv_secret_v2.uptime_kuma.data["password"]
-  kuma_pg_conn    = data.vault_kv_secret_v2.uptime_kuma.data["postgres_connection_string"]
+  kuma_username = data.vault_kv_secret_v2.uptime_kuma.data["username"]
+  kuma_password = data.vault_kv_secret_v2.uptime_kuma.data["password"]
+  kuma_pg_conn  = data.vault_kv_secret_v2.database.data["postgres_uptime-sa"]
 }
 
 provider "uptimekuma" {
