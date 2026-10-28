@@ -6,7 +6,8 @@
 let
 
   if-uptime-kuma-enable = lib.mkIf config.nixosSetup.services.uptime-kuma.enable;
-  imageName = "docker.io/louislam/uptime-kuma:latest";
+  imageName = "docker.io/louislam/uptime-kuma";
+  imageTag = "2.5.5";
   host = "127.0.0.1";
   port = 8380;
   dataVolume = "uptime-kuma_data";
@@ -27,7 +28,7 @@ in
       enable = true;
       containers = {
         uptime-kuma = {
-          image = "${imageName}";
+          image = "${imageName}:${imageTag}";
           ports = [ "${host}:${toString port}:3001" ];
           volumes = [
             "${dataVolume}:/app/data"
