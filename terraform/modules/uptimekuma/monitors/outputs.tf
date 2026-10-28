@@ -17,3 +17,8 @@ output "tcp_monitor_ids" {
   value       = { for k, r in uptimekuma_monitor_tcp_port.this : k => r.id }
   description = "TCP monitor IDs keyed by Terraform key."
 }
+
+output "postgres_monitor_ids" {
+  value       = { for k, r in uptimekuma_monitor_postgres.this : k => r.id }
+  description = "PostgreSQL monitor IDs keyed by Terraform key."
+}
