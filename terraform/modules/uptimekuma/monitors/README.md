@@ -54,3 +54,18 @@ terraform import 'module.uptimekuma.uptimekuma_monitor_http.this["blog"]' 12
 - Auth-gated pages (dashboard behind basic auth): prefer a TCP/ping
   monitor on the host, or use `uptimekuma_monitor_http_keyword` later —
   plain HTTP checks 401 otherwise.
+
+## Postgres prerequisites
+
+`postgres_monitors` need a dedicated login — never reuse an app password.
+On the DB host as the postgres superuser:
+
+```sql
+CREATE ROLE kuma_monitor WITH LOGIN PASSWORD '<from-vault>';
+GRANT CONNECT ON DATABASE <db> TO kuma_monitor;
+```
+
+(`SELECT 1` needs only CONNECT.) Store the connection string in Vault
+(e.g. `secret/uptime-kuma/postgres_connection_string`) and pass it in as
+`connection_string`. The pg_hba entry that covers the Kuma host must allow
+the role (md5) — check `modules/nixos/services/database/postgres/default.nix`.
