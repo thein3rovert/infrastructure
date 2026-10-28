@@ -105,6 +105,10 @@ in
         ip = "192.168.0.113";
         tailscaleIp = "100.106.96.97";
       };
+      raven = {
+        ip = "192.168.0.111";
+        tailscaleIp = "100.123.5.107";
+      };
       becca = {
         ip = "${ip-base}.101";
         tailscaleIp = "100.123.31.22";

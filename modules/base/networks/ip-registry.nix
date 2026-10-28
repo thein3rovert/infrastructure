@@ -134,18 +134,18 @@ in
     # VM Services
     # ============================================
     linkding = {
-      ip = hosts.octavia.tailscaleIp;
+      ip = hosts.raven.tailscaleIp;
       port = networkMap.linkding.port;
       # url = "${config.homelab.ipRegistry.linkding.ip}:${toString config.homelab.ipRegistry.linkding.port}";
       url = "${config.homelab.ipRegistry.linkding.ip}:80";
     };
     longhorn = {
-      ip = hosts.octavia.tailscaleIp;
+      ip = hosts.raven.tailscaleIp;
       port = networkMap.longhorn.port;
       url = "${config.homelab.ipRegistry.longhorn.ip}:${toString config.homelab.ipRegistry.longhorn.port}";
     };
     argocd = {
-      ip = hosts.octavia.tailscaleIp;
+      ip = hosts.raven.tailscaleIp;
       port = networkMap.argocd.port;
       url = "${config.homelab.ipRegistry.argocd.ip}:${toString config.homelab.ipRegistry.argocd.port}";
     };
