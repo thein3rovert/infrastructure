@@ -16,6 +16,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 5.0"
     }
+    uptimekuma = {
+      source  = "breml/uptimekuma"
+      version = "~> 0.4"
+    }
   }
 }
 
