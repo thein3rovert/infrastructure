@@ -53,6 +53,17 @@ in
         CREATE DATABASE kaneo OWNER kaneo;
         GRANT ALL PRIVILEGES ON DATABASE kaneo TO kaneo;
       '';
+      # Monitoring login for Uptime Kuma. The role itself is declarative
+      # here; the password is NOT in Nix — set once out-of-band and store
+      # in Vault (secret/uptime-kuma). SELECT 1 probes only need CONNECT,
+      # which databases grant to PUBLIC by default; the pg_hba host rules
+      # above already permit md5 auth from the Kuma host (bellamy).
+      ensureUsers = [
+        {
+          name = "kuma_monitor";
+          ensureClauses.login = true;
+        }
+      ];
     };
 
     # Set up backup

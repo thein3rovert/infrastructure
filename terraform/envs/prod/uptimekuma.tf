@@ -2,8 +2,7 @@
 #       UPTIME KUMA | monitors as code
 # ====================================
 # Credentials: secret/uptime-kuma (username/password) plus secret/database key postgres_uptime-sa (full conn string).
-# Postgres connection string: secret/uptime-kuma key "postgres_connection_string".
-# Admin login — no scoped tokens exist, so keep it in Vault, never in git.
+# Admin login — no scoped tokens exist, so keep it all in Vault, never in git.
 
 data "vault_kv_secret_v2" "uptime_kuma" {
   mount = "secret"
@@ -33,30 +32,30 @@ module "uptimekuma" {
 
   http_monitors = {
     blog = {
-      url                   = "https://blog.thein3rovert.dev"
-      interval              = 60
-      timeout               = 48
-      method                = "GET"
-      accepted_status_codes = ["200-299"]
-      expiry_notification   = true
+      url                        = "https://blog.thein3rovert.dev"
+      interval                   = 60
+      timeout                    = 48
+      method                     = "GET"
+      accepted_status_codes      = ["200-299"]
+      expiry_notification        = true
       domain_expiry_notification = true
-      max_retries           = 5
-      retry_interval        = 20
-      notification_ids      = [1]
-      tags                  = [{ tag_id = 2, value = "web" }]
+      max_retries                = 5
+      retry_interval             = 20
+      notification_ids           = [1]
+      tags                       = [{ tag_id = 2, value = "web" }]
     }
     garage = {
-      url                   = "https://s3.thein3rovert.dev"
-      interval              = 60
-      timeout               = 48
-      method                = "GET"
-      accepted_status_codes = ["400-499"]
-      expiry_notification   = true
+      url                        = "https://s3.thein3rovert.dev"
+      interval                   = 60
+      timeout                    = 48
+      method                     = "GET"
+      accepted_status_codes      = ["400-499"]
+      expiry_notification        = true
       domain_expiry_notification = true
-      max_retries           = 0
-      retry_interval        = 60
-      notification_ids      = [1]
-      tags                  = [{ tag_id = 2, value = "s3" }]
+      max_retries                = 0
+      retry_interval             = 60
+      notification_ids           = [1]
+      tags                       = [{ tag_id = 2, value = "s3" }]
     }
   }
 
@@ -83,6 +82,7 @@ module "uptimekuma" {
       hostname         = "100.94.20.21"
       interval         = 60
       timeout          = 48
+      description      = "HP pavilon node"
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
@@ -95,7 +95,7 @@ module "uptimekuma" {
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
-      tags             = [{ tag_id = 4, value = "" }, { tag_id = 11, value = "" }]
+      tags             = [{ tag_id = 4, value = "" }, { tag_id = 7, value = "" }, { tag_id = 11, value = "" }]
     }
     octavia = {
       hostname         = "100.106.96.97"
@@ -119,6 +119,7 @@ module "uptimekuma" {
       hostname         = "100.123.5.107"
       interval         = 60
       timeout          = 48
+      description      = "Control Plane 2"
       max_retries      = 0
       retry_interval   = 60
       notification_ids = [1]
@@ -133,6 +134,7 @@ module "uptimekuma" {
       dns_resolve_type           = "A"
       port                       = 53
       interval                   = 60
+      description                = "Monitors my intenal ip-address"
       domain_expiry_notification = true
       max_retries                = 0
       retry_interval             = 60

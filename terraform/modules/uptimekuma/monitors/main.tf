@@ -2,6 +2,7 @@ resource "uptimekuma_monitor_http" "this" {
   for_each = var.http_monitors
 
   name                       = each.key
+  description                = each.value.description
   url                        = each.value.url
   interval                   = each.value.interval
   timeout                    = each.value.timeout
@@ -20,6 +21,7 @@ resource "uptimekuma_monitor_ping" "this" {
   for_each = var.ping_monitors
 
   name             = each.key
+  description      = each.value.description
   hostname         = each.value.hostname
   interval         = each.value.interval
   timeout          = each.value.timeout
@@ -34,6 +36,7 @@ resource "uptimekuma_monitor_dns" "this" {
   for_each = var.dns_monitors
 
   name                       = each.key
+  description                = each.value.description
   hostname                   = each.value.hostname
   dns_resolve_server         = each.value.dns_resolve_server
   dns_resolve_type           = each.value.dns_resolve_type
@@ -51,6 +54,7 @@ resource "uptimekuma_monitor_tcp_port" "this" {
   for_each = var.tcp_monitors
 
   name             = each.key
+  description      = each.value.description
   hostname         = each.value.hostname
   port             = each.value.port
   interval         = each.value.interval
@@ -65,6 +69,7 @@ resource "uptimekuma_monitor_postgres" "this" {
   for_each = var.postgres_monitors
 
   name                       = each.key
+  description                = each.value.description
   database_connection_string = each.value.connection_string
   database_query             = each.value.query
   interval                   = each.value.interval
