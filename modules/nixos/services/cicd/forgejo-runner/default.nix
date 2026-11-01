@@ -66,35 +66,39 @@
               url = "http://100.105.187.63:${toString config.myDns.networkMap.localNetworkMap.forgejo.port}";
             };
 
-            # Runner 2: Native NixOS runner — runs CI jobs directly on the host
-            thein3rovert-nixos = {
-              inherit tokenFile;
-              enable = true;
-              # Tools available to jobs running natively
-              hostPackages =
-                with pkgs;
-                [
-                  bash
-                  cachix
-                  coreutils
-                  curl
-                  gawk
-                  gitMinimal
-                  gnused
-                  jq
-                  nodejs
-                  wget
-                ]
-                ++ [ config.nix.package ]; # include nix itself for nix builds
-              labels = [ "nixos-${arch}:host" ]; # label so jobs can target this runner
-              name = "${arch}-${config.networking.hostName}-thein3rovert-nixos";
-              settings = {
-                container.network = "host";
-                runner.capacity = config.nixosSetup.services.forgejo-runner.nativeRunners;
-              };
+            # ==============Runner 2: ====================
+            # Native NixOS runner — runs CI jobs directly
+            # on the host
+            # ============================================
 
-              url = "http://100.105.187.63:3002";
-            };
+            # thein3rovert-nixos = {
+            #   inherit tokenFile;
+            #   enable = true;
+            #   # Tools available to jobs running natively
+            #   hostPackages =
+            #     with pkgs;
+            #     [
+            #       bash
+            #       cachix
+            #       coreutils
+            #       curl
+            #       gawk
+            #       gitMinimal
+            #       gnused
+            #       jq
+            #       nodejs
+            #       wget
+            #     ]
+            #     ++ [ config.nix.package ]; # include nix itself for nix builds
+            #   labels = [ "nixos-${arch}:host" ]; # label so jobs can target this runner
+            #   name = "${arch}-${config.networking.hostName}-thein3rovert-nixos";
+            #   settings = {
+            #     container.network = "host";
+            #     runner.capacity = config.nixosSetup.services.forgejo-runner.nativeRunners;
+            #   };
+            #
+            #   url = "http://100.105.187.63:3002";
+            # };
 
             # Runner 3: Privileged builder — image builds needing the host
             # Docker socket. Scoped to the `ci-builder` label: only trusted
