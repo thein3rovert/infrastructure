@@ -2,7 +2,7 @@
 #       SHARED INVENTORY (prod)
 # ====================================
 # VMID doubles as the IP octet (192.168.0.<vmid>).
-# VMIDs in use: 51 finn, 101 becca, 102 trikru, 103 roan, 104 forgejo-runner,
+# VMIDs in use: 51 finn, 101 becca, 102 trikru, 103 roan, 104 emori,
 #               105 nightblood, 106 zeke, 111 raven, 112 lincoln, 113 octavia,
 #               114 indra, 120 github-runner.
 # Free: 107, 108, 109, 110 ...
@@ -80,7 +80,7 @@ locals {
       extra_tags      = ["github-runner", "ci"]
       enable_fuse     = false
     }
-    forgejo-runner = {
+    emori = {
       vmid            = 104
       os_type         = "nixos"
       ostemplate      = local.nixos_lxc_template
@@ -91,7 +91,7 @@ locals {
       storage         = "local-lvm"
       target_node     = "mount-weather"
       proxmox_host_ip = var.proxmox_nodes["mount-weather"].host_ip
-      extra_tags      = ["forgejo-runner", "ci"]
+      extra_tags      = ["emori", "forgejo-runner", "ci"]
       enable_fuse     = false
     }
   }
