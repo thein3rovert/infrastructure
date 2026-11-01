@@ -95,6 +95,26 @@
 
               url = "http://100.105.187.63:3002";
             };
+
+            # Runner 3: Privileged builder — image builds needing the host
+            # Docker socket. Scoped to the `ci-builder` label: only trusted
+            # repos (e.g. forgejo-runner-images) may use it, since socket
+            # access is root-equivalent on the runner host.
+            # BOOTSTRAP: `ci-runner` image must be pushed once manually
+            # (PUSH=1 ./build.sh) before this label works.
+            thein3rovert-builder = {
+              inherit tokenFile;
+              enable = true;
+              labels = [ "ci-builder:docker://ghcr.io/thein3rovert/ci-runner:latest" ];
+              name = "${arch}-${config.networking.hostName}-thein3rovert-builder";
+              settings = {
+                container.network = "host";
+                container.options = "-v /var/run/docker.sock:/var/run/docker.sock";
+                runner.capacity = 1;
+              };
+
+              url = "http://100.105.187.63:3002";
+            };
           };
       };
   };
