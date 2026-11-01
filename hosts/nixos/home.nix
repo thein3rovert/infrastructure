@@ -175,7 +175,7 @@ in
             identityFile = "~/.ssh/thein3rovert_nixos";
             user = "thein3rovert";
           };
-          forgejo-runner = lib.recursiveUpdate defaultSSHConfig {
+          emori = lib.recursiveUpdate defaultSSHConfig {
             hostname = "192.168.0.104";
             identityFile = "~/.ssh/thein3rovert_nixos";
             user = "thein3rovert";

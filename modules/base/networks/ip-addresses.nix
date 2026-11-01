@@ -73,7 +73,7 @@ in
         ip = "${ip-base}.51";
         tailscaleIp = "100.91.36.84";
       };
-      forgejo-runner = {
+      emori = {
         ip = "${ip-base}.104";
         # MANUAL: fill in after first tailscale join (`tailscale ip -4`).
         tailscaleIp = "";
