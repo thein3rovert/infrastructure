@@ -1,11 +1,10 @@
 { self, ... }:
 {
   age = {
-    # MANUAL: generate with `ssh-keygen -t ed25519 -f ~/.ssh/thein3rovert_forgejo_runner`
-    # then re-encrypt forgejo/runner/forgejo-runner-secret.age for the new
-    # pubkey in the secret-vault repo (see hosts/runner/secret.nix).
+    # Reuses the existing runner keypair (~/.ssh/thein3rovert_runner), which
+    # is already a recipient of forgejo-runner-secret.age in secret-vault.
     identityPaths = [
-      "/home/thein3rovert/.ssh/thein3rovert_forgejo_runner"
+      "/home/thein3rovert/.ssh/thein3rovert_runner"
     ];
     secrets = {
       tailscale = {
