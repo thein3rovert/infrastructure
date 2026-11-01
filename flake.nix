@@ -197,7 +197,7 @@
             "finn" # (Lxc - Killed by grounders)
             "roan" # lxc for all current container on emily
             "zeke" # lxc - technitium dns resolver
-            "forgejo-runner" # lxc - Forgejo Actions runners (HML-054)
+            "emori" # lxc - Forgejo Actions runner (HML-054)
             # "vps-het-1"
             # "demo"
             # "wellsjaha"
@@ -483,8 +483,8 @@
               ];
             };
 
-            # ---- Node: Forgejo Runner [ lxc 104 ] ----
-            forgejo-runner = {
+            # ---- Node: Emori [ lxc 104 ] ----
+            emori = {
               deployment = {
                 targetHost = "192.168.0.104";
                 targetPort = 22;
@@ -497,7 +497,7 @@
               };
               nixpkgs.system = "x86_64-linux";
               imports = [
-                ./hosts/forgejo-runner
+                ./hosts/emori
                 agenix.nixosModules.default
                 self.nixosModules.base
                 self.nixosModules.snippets
