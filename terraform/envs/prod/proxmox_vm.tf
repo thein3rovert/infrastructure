@@ -6,7 +6,7 @@ module "vm" {
   for_each = local.proxmox_vms
 
   target_node    = try(each.value.target_node, var.target_node)
-  hostname       = each.key
+  hostname       = try(each.value.hostname, each.key)
   vmid           = each.value.vmid
   clone_template = each.value.clone_template
 

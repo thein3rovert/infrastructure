@@ -85,6 +85,7 @@ locals {
   proxmox_vms = {
     raven = {
       vmid           = 111
+      hostname       = "Raven" # keep capital: matches live state, rename needs recreate
       clone_template = "ubuntu-22.04-cloud"
       kvm_enabled    = true
       agent_enabled  = true
@@ -130,8 +131,8 @@ locals {
     nightblood = {
       vmid           = 105
       clone_template = "ubuntu-cloud-template"
-      kvm_enabled    = false
-      agent_enabled  = false
+      kvm_enabled    = true
+      agent_enabled  = true # live state has agent=1/kvm=true (pre-existing drift from defaults)
       cores          = 1
       memory         = 1024
       disk_size      = "8G"
