@@ -163,14 +163,9 @@
               certResolver = "cloudflare";
             };
           };
-          routers.ssh = {
-            rule = "Host(`ssh.thein3rovert.dev`)";
-            service = "ssh";
-            entryPoints = [ "websecure" ];
-            tls = {
-              certResolver = "cloudflare";
-            };
-          };
+          # NOTE: no HTTP route for ssh.thein3rovert.dev — SSH is raw TCP,
+          # not HTTP. Forgejo's built-in server listens on *:2222 directly
+          # (HML-055), so Traefik stays out of the path entirely.
         };
       };
     };
@@ -213,6 +208,7 @@
       allowedTCPPorts = [
         80
         443
+        2222 # Forgejo built-in SSH server (HML-055)
       ];
     };
   };
