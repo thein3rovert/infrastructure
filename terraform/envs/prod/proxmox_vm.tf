@@ -5,7 +5,7 @@ module "vm" {
   source   = "../../modules/infra/providers/proxmox/vm"
   for_each = local.proxmox_vms
 
-  target_node    = each.value.target_node
+  target_node    = try(each.value.target_node, var.target_node)
   hostname       = each.key
   vmid           = each.value.vmid
   clone_template = each.value.clone_template
@@ -15,11 +15,11 @@ module "vm" {
   cores         = each.value.cores
   memory        = each.value.memory
   disk_size     = each.value.disk_size
-  storage       = each.value.storage
-  data_disk     = each.value.data_disk
+  storage       = try(each.value.storage, var.rootfs_storage)
+  data_disk     = try(each.value.data_disk, null)
 
   bridge      = var.bridge
-  ip_address  = each.value.ip_address
+  ip_address  = "${var.ip_base}.${each.value.vmid}" # IP octet derives from VMID
   cidr_suffix = var.cidr_suffix
   gateway     = var.gateway
 

@@ -3,15 +3,15 @@
 # ====================================
 # VMID doubles as the IP octet (192.168.0.<vmid>).
 # VMIDs in use: 51 finn, 101 becca, 102 trikru, 103 roan, 105 nightblood,
-#               106 zeke, 111 raven, 112 lincoln, 114 indra, 120 github-runner.
-# Free: 104, 107, 108, 109, 110, 113 ...
+#               106 zeke, 111 raven, 112 lincoln, 113 octavia, 114 indra,
+#               120 github-runner.
+# Free: 104, 107, 108, 109, 110 ...
 locals {
   nixos_lxc_template = "local:vztmpl/nixos-image-lxc-proxmox-26.05.20251205.f61125a-x86_64-linux.tar.xz"
 
   lxc_containers = {
     becca = {
       vmid            = 101
-      container_id    = 101
       os_type         = "ubuntu"
       ostemplate      = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
       cores           = 1
@@ -26,7 +26,6 @@ locals {
     }
     trikru = {
       vmid            = 102
-      container_id    = 102
       os_type         = "ubuntu"
       ostemplate      = var.ostemplate
       cores           = 2
@@ -41,7 +40,6 @@ locals {
     }
     roan = {
       vmid            = 103
-      container_id    = 103
       os_type         = "nixos"
       ostemplate      = local.nixos_lxc_template
       cores           = 2
@@ -56,7 +54,6 @@ locals {
     }
     zeke = {
       vmid            = 106
-      container_id    = 106
       os_type         = "nixos"
       ostemplate      = local.nixos_lxc_template
       cores           = 1
@@ -71,7 +68,6 @@ locals {
     }
     github-runner = {
       vmid            = 120
-      container_id    = 120
       os_type         = "ubuntu"
       ostemplate      = var.ostemplate
       cores           = 2
@@ -95,12 +91,8 @@ locals {
       cores          = 2
       memory         = 4096
       disk_size      = "30G"
-      storage        = var.rootfs_storage
-      target_node    = var.target_node
-      ip_address     = "${var.ip_base}.111"
       extra_tags     = ["k3s", "ubuntu"]
       description    = "k3s Server Control Plane"
-      data_disk      = null
     }
     lincoln = {
       vmid           = 112
@@ -110,12 +102,8 @@ locals {
       cores          = 2
       memory         = 4096
       disk_size      = "30G"
-      storage        = var.rootfs_storage
-      target_node    = var.target_node
-      ip_address     = "${var.ip_base}.112"
       extra_tags     = ["k3s", "ubuntu"]
       description    = "k3s Server Control Plane"
-      data_disk      = null
     }
     octavia = {
       vmid           = 113
@@ -125,12 +113,8 @@ locals {
       cores          = 2
       memory         = 4096
       disk_size      = "30G"
-      storage        = var.rootfs_storage
-      target_node    = var.target_node
-      ip_address     = "${var.ip_base}.113"
       extra_tags     = ["k3s", "ubuntu"]
       description    = "k3s Server Control Plane - replacement for marcus incus VM (HML-045)\nNOTE: ubuntu-22.04-cloud template must exist on mount-weather (currently only on thein3rovert) - copy before apply"
-      data_disk      = null
     }
     indra = {
       vmid           = 114
@@ -140,12 +124,8 @@ locals {
       cores          = 2
       memory         = 4096
       disk_size      = "20G"
-      storage        = var.rootfs_storage
-      target_node    = var.target_node
-      ip_address     = "${var.ip_base}.114"
       extra_tags     = ["kestra", "worker", "docker"]
       description    = "Kestra persistent worker with Docker for ephemeral CI jobs"
-      data_disk      = null
     }
     nightblood = {
       vmid           = 105
@@ -155,9 +135,7 @@ locals {
       cores          = 1
       memory         = 1024
       disk_size      = "8G"
-      storage        = var.rootfs_storage
       target_node    = var.proxmox_placements["nfs_storage"]
-      ip_address     = "${var.ip_base}.105"
       extra_tags     = ["nfs", "storage", "ubuntu"]
       description    = "Ubuntu NFS storage VM"
       data_disk = {

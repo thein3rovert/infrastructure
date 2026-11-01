@@ -12,7 +12,7 @@ module "lxc" {
 
   hostname     = each.key
   vmid         = each.value.vmid
-  container_id = each.value.container_id
+  container_id = each.value.vmid # IP octet derives from VMID (192.168.0.<vmid>)
   os_type      = each.value.os_type
 
   ostemplate = each.value.ostemplate
