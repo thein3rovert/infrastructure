@@ -2,10 +2,10 @@
 #       SHARED INVENTORY (prod)
 # ====================================
 # VMID doubles as the IP octet (192.168.0.<vmid>).
-# VMIDs in use: 51 finn, 101 becca, 102 trikru, 103 roan, 105 nightblood,
-#               106 zeke, 111 raven, 112 lincoln, 113 octavia, 114 indra,
-#               120 github-runner.
-# Free: 104, 107, 108, 109, 110 ...
+# VMIDs in use: 51 finn, 101 becca, 102 trikru, 103 roan, 104 forgejo-runner,
+#               105 nightblood, 106 zeke, 111 raven, 112 lincoln, 113 octavia,
+#               114 indra, 120 github-runner.
+# Free: 107, 108, 109, 110 ...
 locals {
   nixos_lxc_template = "local:vztmpl/nixos-image-lxc-proxmox-26.05.20251205.f61125a-x86_64-linux.tar.xz"
 
@@ -78,6 +78,20 @@ locals {
       target_node     = var.target_node
       proxmox_host_ip = var.proxmox_host_ip
       extra_tags      = ["github-runner", "ci"]
+      enable_fuse     = false
+    }
+    forgejo-runner = {
+      vmid            = 104
+      os_type         = "nixos"
+      ostemplate      = local.nixos_lxc_template
+      cores           = 2
+      memory          = 4096
+      swap            = 1024
+      disk_size       = "60G"
+      storage         = "local-lvm"
+      target_node     = "mount-weather"
+      proxmox_host_ip = var.proxmox_nodes["mount-weather"].host_ip
+      extra_tags      = ["forgejo-runner", "ci"]
       enable_fuse     = false
     }
   }
