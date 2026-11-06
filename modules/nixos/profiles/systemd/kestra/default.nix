@@ -46,6 +46,8 @@ in
               driver-class-name: org.postgresql.Driver
               username: kestra
               password: kestra
+              maximum-pool-size: 5
+              minimum-idle: 1
           kestra:
             server:
               basic-auth:

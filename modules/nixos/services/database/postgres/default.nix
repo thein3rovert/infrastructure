@@ -18,6 +18,9 @@ in
       enable = true;
       enableTCPIP = true;
       package = pkgs.postgresql_17;
+      settings = {
+        max_connections = 150;
+      };
       extensions = with pkgs.postgresql17Packages; [
         pgvector
       ];
